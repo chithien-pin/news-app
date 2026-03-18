@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
   HomeHeader,
   SectionHeader,
@@ -20,6 +21,8 @@ import {
 import { useTopHeadlines } from '../hooks/useNews';
 import { colors, spacing } from '../config/theme';
 import type { TopHeadlinesParams } from '../types/news';
+import type { RootStackParamList } from '../navigation/types';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 const CATEGORY_TO_API: Record<CategoryKey, TopHeadlinesParams['category'] | undefined> = {
   All: undefined,
@@ -32,8 +35,13 @@ const CATEGORY_TO_API: Record<CategoryKey, TopHeadlinesParams['category'] | unde
   Sports: 'sports',
 };
 
-export default function HomeScreen() {
+type HomeScreenProps = {
+  onOpenNotifications?: () => void;
+};
+
+export default function HomeScreen({ onOpenNotifications }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('All');
 
   const trendingParams = useMemo<TopHeadlinesParams>(
@@ -71,7 +79,11 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <HomeHeader />
+      <HomeHeader
+        onNotificationPress={
+          onOpenNotifications ?? (() => navigation.navigate('Notifications'))
+        }
+      />
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -99,7 +111,7 @@ export default function HomeScreen() {
             renderItem={({ item }) => <TrendingCard article={item} />}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.trendingList}
-            listKey="trending"
+            key={`trending-${Date.now()}`}
           />
         )}
 
